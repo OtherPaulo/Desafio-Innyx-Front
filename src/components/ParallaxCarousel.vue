@@ -96,7 +96,6 @@ onUnmounted(() => {
     @mouseenter="stopAutoplay"
     @mouseleave="startAutoplay"
   >
-    <!-- Slides -->
     <div class="relative h-full">
       <transition-group name="slide">
         <div 
@@ -105,7 +104,6 @@ onUnmounted(() => {
           v-show="currentSlide === index"
           class="absolute inset-0"
         >
-          <!-- Background Image with Parallax -->
           <div 
             class="absolute inset-0 bg-cover bg-center transition-transform duration-300"
             :style="{
@@ -116,7 +114,6 @@ onUnmounted(() => {
             <div :class="`absolute inset-0 bg-gradient-to-r ${slide.color} to-transparent opacity-60`"></div>
           </div>
 
-          <!-- Content -->
           <div class="relative h-full flex items-center">
             <div class="container mx-auto px-4">
               <div class="max-w-xl px-8">
@@ -137,7 +134,6 @@ onUnmounted(() => {
       </transition-group>
     </div>
 
-    <!-- Navigation Buttons -->
     <div class="absolute inset-y-0 left-0 flex items-center">
       <button 
         @click="prevSlide"
@@ -159,7 +155,6 @@ onUnmounted(() => {
       </button>
     </div>
 
-    <!-- Slide Indicators -->
     <div class="absolute bottom-4 left-0 right-0 flex justify-center space-x-2">
       <button
         v-for="(slide, index) in slides"

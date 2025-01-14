@@ -45,14 +45,12 @@ onUnmounted(() => {
 
 <template>
   <div class="min-h-screen bg-gray-100">
-    <!-- Sidebar -->
     <aside
       id="sidebar"
       :class="`${
         isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
       } md:translate-x-0 fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 text-white transition-transform duration-300 ease-in-out flex flex-col`"
     >
-      <!-- Logo -->
       <div class="p-4 border-b border-gray-800 flex justify-between items-center">
         <h1 class="text-xl font-bold">Paulo Dev</h1>
         <button
@@ -76,10 +74,8 @@ onUnmounted(() => {
         </button>
       </div>
 
-      <!-- Navigation -->
       <nav class="flex-1 p-4">
         <ul class="space-y-2">
-          <!-- Dashboard -->
           <li>
             <router-link
               to="/dashboard"
@@ -93,7 +89,6 @@ onUnmounted(() => {
             </router-link>
           </li>
 
-          <!-- Products Dropdown -->
           <li>
             <button
               @click="toggleProducts"
@@ -117,7 +112,6 @@ onUnmounted(() => {
               </svg>
             </button>
             
-            <!-- Products Submenu -->
             <ul
               v-show="isProductsOpen"
               class="mt-2 ml-4 space-y-2 border-l border-gray-800"
@@ -149,7 +143,6 @@ onUnmounted(() => {
             </ul>
           </li>
 
-          <!-- Help Section -->
           <li>
             <router-link
               to="/dashboard/help"
@@ -167,7 +160,6 @@ onUnmounted(() => {
         </ul>
       </nav>
 
-      <!-- Logout Button -->
       <div class="p-4 border-t border-gray-800">
         <button
           @click="handleLogout"
@@ -181,9 +173,7 @@ onUnmounted(() => {
       </div>
     </aside>
 
-    <!-- Main Content -->
     <div class="md:ml-64 min-h-screen flex flex-col">
-      <!-- Top Bar -->
       <header class="bg-gray-100 shadow-sm fixed top-0 right-0 left-0 md:hidden z-40">
         <div class="flex items-center justify-between p-4">
           <button
@@ -209,12 +199,10 @@ onUnmounted(() => {
         </div>
       </header>
 
-      <!-- Page Content -->
       <main class="flex-grow p-6 mt-16">
         <router-view />
       </main>
 
-      <!-- Footer -->
       <footer class="bg-white border-t border-gray-200 py-4 px-6">
         <div class="text-center text-gray-600">
           <p>&copy; {{ new Date().getFullYear() }} Paulo Dev. Todos os direitos reservados.</p>

@@ -101,7 +101,6 @@ const goToPage = (page: number) => {
       </router-link>
     </div>
 
-    <!-- Search Filters -->
     <div class="bg-white rounded-lg shadow-sm p-6">
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
@@ -153,7 +152,6 @@ const goToPage = (page: number) => {
       </div>
     </div>
 
-    <!-- Products Table -->
     <div class="bg-white rounded-lg shadow-sm overflow-hidden">
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
@@ -233,7 +231,6 @@ const goToPage = (page: number) => {
         Nenhum produto encontrado.
       </div>
 
-      <!-- Pagination -->
       <div v-if="totalPages > 1" class="px-6 py-4 flex justify-center items-center space-x-2">
         <button
           @click="goToPage(currentPage - 1)"
@@ -244,7 +241,6 @@ const goToPage = (page: number) => {
         </button>
 
         <template v-for="pageNum in totalPages" :key="pageNum">
-          <!-- Show first page -->
           <button
             v-if="pageNum === 1"
             @click="goToPage(pageNum)"
@@ -254,7 +250,6 @@ const goToPage = (page: number) => {
             {{ pageNum }}
           </button>
 
-          <!-- Show ellipsis for skipped pages after first page -->
           <span
             v-if="pageNum === 2 && currentPage > 4"
             class="px-2"
@@ -262,7 +257,6 @@ const goToPage = (page: number) => {
             ...
           </span>
 
-          <!-- Show current page and surrounding pages -->
           <button
             v-if="pageNum >= currentPage - 1 && pageNum <= currentPage + 1 && pageNum !== 1 && pageNum !== totalPages"
             @click="goToPage(pageNum)"
@@ -272,7 +266,6 @@ const goToPage = (page: number) => {
             {{ pageNum }}
           </button>
 
-          <!-- Show ellipsis for skipped pages before last page -->
           <span
             v-if="pageNum === totalPages - 1 && currentPage < totalPages - 3"
             class="px-2"
@@ -280,7 +273,6 @@ const goToPage = (page: number) => {
             ...
           </span>
 
-          <!-- Show last page -->
           <button
             v-if="pageNum === totalPages"
             @click="goToPage(pageNum)"
@@ -301,7 +293,6 @@ const goToPage = (page: number) => {
       </div>
     </div>
 
-    <!-- Product Modal -->
     <div v-if="isModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div class="bg-white rounded-lg max-w-2xl w-full p-6">
         <div class="flex justify-between items-start mb-4">
@@ -315,7 +306,6 @@ const goToPage = (page: number) => {
           </button>
         </div>
 
-        <!-- View Mode -->
         <div v-if="!isEditing && selectedProduct" class="space-y-4">
           <div class="flex items-start space-x-4">
             <img :src="selectedProduct.image" class="w-24 h-24 rounded-lg object-cover" />
@@ -340,7 +330,6 @@ const goToPage = (page: number) => {
           </div>
         </div>
 
-        <!-- Edit Mode -->
         <form v-else-if="isEditing" @submit.prevent="handleUpdate" class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>

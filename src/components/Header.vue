@@ -15,7 +15,6 @@ const navigateToAuth = () => {
 }
 
 onMounted(() => {
-  // Trigger header animation last
   setTimeout(() => {
     isVisible.value = true
   }, 1500)
@@ -29,12 +28,10 @@ onMounted(() => {
   >
     <div class="container mx-auto px-8">
       <div class="flex justify-between items-center h-16">
-        <!-- Logo -->
         <div class="flex-shrink-0 px-8">
           <h1 class="text-2xl font-bold">Creatus Hub</h1>
         </div>
 
-        <!-- Desktop Menu -->
         <nav class="hidden md:flex items-center space-x-8">
           <a href="#" class="text-gray-300 hover:text-white transition-colors">Início</a>
           <a href="#" class="text-gray-300 hover:text-white transition-colors">Produtos</a>
@@ -42,7 +39,6 @@ onMounted(() => {
           <a href="#contato" class="text-gray-300 hover:text-white transition-colors">Contato</a>
         </nav>
 
-        <!-- Desktop Login Button -->
         <div class="hidden px-8 md:block">
           <button 
             @click="navigateToAuth"
@@ -52,7 +48,6 @@ onMounted(() => {
           </button>
         </div>
 
-        <!-- Mobile Menu Button -->
         <button 
           class="md:hidden p-2 rounded-lg hover:bg-gray-800 focus:outline-none"
           @click="toggleMenu"
@@ -81,7 +76,6 @@ onMounted(() => {
         </button>
       </div>
 
-      <!-- Mobile Menu -->
       <div 
         v-show="isMenuOpen"
         class="md:hidden"

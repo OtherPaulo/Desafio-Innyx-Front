@@ -11,12 +11,10 @@ const navigateToAuth = () => {
 }
 
 onMounted(() => {
-  // Trigger the hero section animation
   setTimeout(() => {
     isVisible.value = true
   }, 100)
 
-  // Trigger the button animation after hero section
   setTimeout(() => {
     isButtonVisible.value = true
   }, 800)
@@ -25,7 +23,6 @@ onMounted(() => {
 
 <template>
   <section class="relative h-screen bg-black text-white flex items-center justify-center overflow-hidden">
-    <!-- Sparkles Background -->
     <div class="sparkles-container absolute inset-0">
       <div v-for="n in 20" :key="n" class="sparkle" :style="{
         left: `${Math.random() * 100}%`,

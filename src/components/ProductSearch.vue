@@ -32,7 +32,6 @@ onMounted(() => {
       if (entries[0].isIntersecting) {
         isVisible.value = true
         
-        // Sequenced animations
         setTimeout(() => {
           isFormVisible.value = true
         }, 500)
@@ -68,7 +67,6 @@ onMounted(() => {
             class="grid grid-cols-1 md:grid-cols-3 gap-6 transform transition-all duration-1000"
             :class="[isFormVisible ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0']"
           >
-            <!-- Search Term -->
             <div>
               <label for="search" class="block text-sm font-medium text-gray-700 mb-1">
                 Nome do Produto
@@ -82,7 +80,6 @@ onMounted(() => {
               />
             </div>
 
-            <!-- Category -->
             <div>
               <label for="category" class="block text-sm font-medium text-gray-700 mb-1">
                 Categoria
@@ -99,7 +96,6 @@ onMounted(() => {
               </select>
             </div>
 
-            <!-- Max Price -->
             <div>
               <label for="price" class="block text-sm font-medium text-gray-700 mb-1">
                 Preço Máximo
@@ -116,7 +112,6 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- Search Button and Results Preview -->
           <div 
             class="mt-6 space-y-6 transform transition-all duration-1000"
             :class="[isButtonVisible ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0']"
@@ -131,7 +126,6 @@ onMounted(() => {
               <span>Buscar Produtos</span>
             </button>
 
-            <!-- Results Preview -->
             <div class="text-center text-gray-500">
               <p>Encontre produtos por nome, categoria ou faixa de preço.</p>
               <p class="text-sm">Resultados aparecerão aqui após a busca.</p>

@@ -27,7 +27,6 @@ const handleSubmit = async () => {
       throw new Error('As senhas não coincidem')
     }
 
-    // For demo purposes, directly navigate to dashboard
     router.push('/dashboard')
   } catch (err: any) {
     error.value = err.message || 'Ocorreu um erro. Tente novamente.'
@@ -42,13 +41,11 @@ const handleSubmit = async () => {
         {{ isLogin ? 'Login' : 'Criar Conta' }}
       </h2>
 
-      <!-- Error Message -->
       <div v-if="error" class="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg">
         {{ error }}
       </div>
 
       <form @submit.prevent="handleSubmit" class="space-y-6">
-        <!-- Name field (only for sign up) -->
         <div v-if="!isLogin">
           <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
             Nome
@@ -63,7 +60,6 @@ const handleSubmit = async () => {
           />
         </div>
 
-        <!-- Email field -->
         <div>
           <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
             Email
@@ -78,7 +74,6 @@ const handleSubmit = async () => {
           />
         </div>
 
-        <!-- Password field -->
         <div>
           <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
             Senha
@@ -93,7 +88,6 @@ const handleSubmit = async () => {
           />
         </div>
 
-        <!-- Password Confirmation (only for sign up) -->
         <div v-if="!isLogin">
           <label for="password_confirmation" class="block text-sm font-medium text-gray-700 mb-1">
             Confirmar Senha
@@ -108,7 +102,6 @@ const handleSubmit = async () => {
           />
         </div>
 
-        <!-- Submit button -->
         <button
           type="submit"
           class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
@@ -116,7 +109,6 @@ const handleSubmit = async () => {
           {{ isLogin ? 'Entrar' : 'Criar conta' }}
         </button>
 
-        <!-- Toggle form type -->
         <p class="text-center text-sm text-gray-600">
           {{ isLogin ? 'Não tem uma conta?' : 'Já tem uma conta?' }}
           <button

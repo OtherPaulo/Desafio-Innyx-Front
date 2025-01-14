@@ -78,7 +78,6 @@ onMounted(() => {
 <template>
   <section class="subscription-section py-16 bg-black text-white">
     <div class="container mx-auto px-8">
-      <!-- Section Header -->
       <div 
         class="max-w-3xl mx-auto text-center mb-12 transform transition-all duration-1000"
         :class="[isVisible ? 'translate-y-0 opacity-100' : 'translate-y-16 opacity-0']"
@@ -91,7 +90,6 @@ onMounted(() => {
         </p>
       </div>
 
-      <!-- Plans Grid -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
         <div 
           v-for="(plan, index) in plans" 
@@ -102,12 +100,10 @@ onMounted(() => {
             { 'delay-200': index === 1, 'delay-400': index === 2 }
           ]"
         >
-          <!-- Plan Card -->
           <div 
             class="h-full bg-gray-800 rounded-2xl p-8 flex flex-col"
             :class="{ 'ring-2 ring-blue-500 scale-105': plan.highlight }"
           >
-            <!-- Popular Badge -->
             <div 
               v-if="plan.highlight" 
               class="absolute -top-4 left-1/2 transform -translate-x-1/2"
@@ -117,7 +113,6 @@ onMounted(() => {
               </span>
             </div>
 
-            <!-- Plan Header -->
             <div class="mb-8">
               <h3 class="text-2xl font-bold mb-2">{{ plan.name }}</h3>
               <div class="flex items-baseline">
@@ -126,7 +121,6 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- Features List -->
             <ul class="space-y-4 mb-8 flex-grow">
               <li 
                 v-for="feature in plan.features" 
@@ -150,7 +144,6 @@ onMounted(() => {
               </li>
             </ul>
 
-            <!-- CTA Button -->
             <button
               @click="handleSubscribe(plan.id)"
               class="w-full py-3 px-6 rounded-lg font-medium transition-colors"

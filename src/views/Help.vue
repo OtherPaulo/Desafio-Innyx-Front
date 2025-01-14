@@ -5,7 +5,6 @@
   <div class="space-y-8">
     <h1 class="text-2xl font-bold">Documentação do Projeto</h1>
 
-    <!-- Overview Section -->
     <section class="space-y-4">
       <h2 class="text-xl font-semibold">Visão Geral</h2>
       <p class="text-gray-600">
@@ -15,7 +14,6 @@
       </p>
     </section>
 
-    <!-- Features Section -->
     <section class="space-y-4">
       <h2 class="text-xl font-semibold">Funcionalidades</h2>
       <div class="space-y-4">
@@ -57,7 +55,6 @@
       </div>
     </section>
 
-    <!-- Technical Stack -->
     <section class="space-y-4">
       <h2 class="text-xl font-semibold">Stack Tecnológica</h2>
       <ul class="list-disc list-inside text-gray-600 ml-4">
