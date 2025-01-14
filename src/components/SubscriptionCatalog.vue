@@ -56,7 +56,7 @@ const plans = [
 ]
 
 const handleSubscribe = (planId: number) => {
-  router.push('/auth')
+  router.push('/auth?plan=' + planId)
 }
 
 onMounted(() => {
