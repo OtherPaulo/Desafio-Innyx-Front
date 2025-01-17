@@ -1,42 +1,168 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useProducts } from '../composables/useProducts'
-import type { Product } from '../composables/useProducts'
+import { ref, computed, onMounted } from 'vue'
+import { getCategories, getProducts, deleteProduct, updateProduct } from '../services/api'
+import ProductModals from '../components/Products/ProductModals.vue'
 
-const {
-  paginatedProducts,
-  totalPages,
-  currentPage,
-  searchTerm,
-  selectedCategory,
-  maxPrice,
-  updateProduct,
-  deleteProduct
-} = useProducts()
+interface Category {
+  id: number
+  name: string
+  created_at: string
+  updated_at: string
+}
 
-const categories = [
-  'Eletrônicos',
-  'Roupas',
-  'Alimentos',
-  'Bebidas',
-  'Cosméticos',
-  'Livros',
-  'Outros'
-]
+interface Product {
+  id: number
+  name: string
+  description: string
+  price: number
+  expiration_date: string
+  image: string
+  categoria_id: number
+  categoria: Category
+  created_at: string
+  updated_at: string
+}
 
-const selectedProduct = ref<Product | null>(null)
-const isModalOpen = ref(false)
-const isEditing = ref(false)
-const editForm = ref<Partial<Product>>({})
+const products = ref<Product[]>([])
+const allProducts = ref<Product[]>([])
+const categories = ref<Category[]>([])
+const currentPage = ref(1)
+const lastPage = ref(1)
+const searchTerm = ref('')
+const selectedCategory = ref<string>('')
+const maxPrice = ref<number | null>(null)
+const isLoading = ref(false)
+const isSaving = ref(false)
+const isDeleting = ref(false)
+const editingProduct = ref<Product | null>(null)
+const originalProduct = ref<Product | null>(null)
+const showEditModal = ref(false)
+const showDeleteModal = ref(false)
+const productToDelete = ref<Product | null>(null)
+const expandedProductId = ref<number | null>(null)
+
+const filteredProducts = computed(() => {
+  return allProducts.value.filter(product => {
+    const matchesSearch = searchTerm.value === '' || 
+      product.name.toLowerCase().includes(searchTerm.value.toLowerCase())
+    
+    const matchesCategory = selectedCategory.value === '' || 
+      product.categoria?.name === selectedCategory.value
+    
+    const matchesPrice = !maxPrice.value || product.price <= maxPrice.value
+    
+    return matchesSearch && matchesCategory && matchesPrice
+  })
+})
+
+const paginatedProducts = computed(() => {
+  const startIndex = (currentPage.value - 1) * 10
+  const endIndex = startIndex + 10
+  return filteredProducts.value.slice(startIndex, endIndex)
+})
+
+const totalPages = computed(() => {
+  return Math.ceil(filteredProducts.value.length / 10)
+})
+
+const loadData = async () => {
+  isLoading.value = true
+  try {
+    const [categoriesData, productsData] = await Promise.all([
+      getCategories(),
+      getProducts({})
+    ])
+    
+    categories.value = categoriesData
+    allProducts.value = productsData.data
+    products.value = paginatedProducts.value
+    lastPage.value = totalPages.value
+  } catch (error) {
+    console.error('Error loading data:', error)
+  } finally {
+    isLoading.value = false
+  }
+}
 
 const handleSearch = () => {
   currentPage.value = 1
+  products.value = paginatedProducts.value
+  lastPage.value = totalPages.value
+}
+
+const handlePageChange = (page: number) => {
+  currentPage.value = page
+  products.value = paginatedProducts.value
+}
+
+const confirmDelete = (product: Product) => {
+  productToDelete.value = product
+  showDeleteModal.value = true
+}
+
+const handleDelete = async () => {
+  if (!productToDelete.value) return
+  
+  isDeleting.value = true
+  try {
+    await deleteProduct(productToDelete.value.id)
+    showDeleteModal.value = false
+    productToDelete.value = null
+    await loadData()
+  } catch (error) {
+    console.error('Error deleting product:', error)
+  } finally {
+    isDeleting.value = false
+  }
+}
+
+const formatDateForInput = (dateString: string) => {
+  const date = new Date(dateString)
+  return date.toISOString().split('T')[0]
+}
+
+const openEditModal = (product: Product) => {
+  originalProduct.value = JSON.parse(JSON.stringify(product))
+  editingProduct.value = JSON.parse(JSON.stringify(product))
+  
+  if (editingProduct.value) {
+    editingProduct.value.expiration_date = formatDateForInput(product.expiration_date)
+  }
+  
+  showEditModal.value = true
+}
+
+const handleUpdate = async () => {
+  if (!editingProduct.value) return
+  
+  isSaving.value = true
+  try {
+    await updateProduct(editingProduct.value.id, {
+      name: editingProduct.value.name,
+      description: editingProduct.value.description,
+      price: editingProduct.value.price,
+      expiration_date: editingProduct.value.expiration_date,
+      categoria_id: editingProduct.value.categoria_id,
+      image: editingProduct.value.image
+    })
+    
+    showEditModal.value = false
+    editingProduct.value = null
+    originalProduct.value = null
+    await loadData()
+  } catch (error) {
+    console.error('Error updating product:', error)
+  } finally {
+    isSaving.value = false
+  }
+}
+
+const toggleProductExpand = (productId: number) => {
+  expandedProductId.value = expandedProductId.value === productId ? null : productId
 }
 
 const formatDate = (date: string) => {
-  const d = new Date(date)
-  d.setMinutes(d.getMinutes() + d.getTimezoneOffset())
-  return d.toLocaleDateString()
+  return new Date(date).toLocaleDateString()
 }
 
 const formatPrice = (price: number) => {
@@ -46,44 +172,9 @@ const formatPrice = (price: number) => {
   })
 }
 
-const openModal = (product: Product, edit = false) => {
-  selectedProduct.value = product
-  isEditing.value = edit
-  if (edit) {
-    editForm.value = { ...product }
-    const date = new Date(product.expiryDate)
-    date.setMinutes(date.getMinutes() + date.getTimezoneOffset())
-    editForm.value.expiryDate = date.toISOString().split('T')[0]
-  }
-  isModalOpen.value = true
-}
-
-const closeModal = () => {
-  isModalOpen.value = false
-  selectedProduct.value = null
-  isEditing.value = false
-  editForm.value = {}
-}
-
-const handleUpdate = () => {
-  if (selectedProduct.value && editForm.value) {
-    updateProduct(selectedProduct.value.id, editForm.value)
-    closeModal()
-  }
-}
-
-const handleDelete = (id: string) => {
-  if (confirm('Tem certeza que deseja excluir este produto?')) {
-    deleteProduct(id)
-    closeModal()
-  }
-}
-
-const goToPage = (page: number) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page
-  }
-}
+onMounted(() => {
+  loadData()
+})
 </script>
 
 <template>
@@ -102,7 +193,7 @@ const goToPage = (page: number) => {
     </div>
 
     <div class="bg-white rounded-lg shadow-sm p-6">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
           <label for="search" class="block text-sm font-medium text-gray-700 mb-1">
             Nome do Produto
@@ -128,8 +219,8 @@ const goToPage = (page: number) => {
             @change="handleSearch"
           >
             <option value="">Todas as categorias</option>
-            <option v-for="category in categories" :key="category" :value="category">
-              {{ category }}
+            <option v-for="category in categories" :key="category.id" :value="category.name">
+              {{ category.name }}
             </option>
           </select>
         </div>
@@ -175,238 +266,96 @@ const goToPage = (page: number) => {
             </tr>
           </thead>
           <tbody class="bg-white divide-y divide-gray-200">
-            <tr v-for="product in paginatedProducts" :key="product.id">
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center">
-                  <div class="h-10 w-10 flex-shrink-0">
-                    <img :src="product.image" class="h-10 w-10 rounded-full object-cover" />
-                  </div>
-                  <div class="ml-4">
-                    <div class="text-sm font-medium text-gray-900">{{ product.name }}</div>
-                    <div v-if="product.description.length > 50" class="mt-1">
-                      <button
-                        @click="openModal(product)"
-                        class="text-sm text-blue-600 hover:text-blue-700"
-                      >
-                        Ver descrição
-                      </button>
-                    </div>
-                    <div v-else class="text-sm text-gray-500">{{ product.description }}</div>
-                  </div>
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
-                  {{ product.category }}
-                </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ formatPrice(product.price) }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {{ formatDate(product.expiryDate) }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <div class="flex space-x-2">
-                  <button
-                    @click="openModal(product, true)"
-                    class="text-blue-600 hover:text-blue-700"
-                  >
-                    Editar
-                  </button>
-                  <button
-                    @click="handleDelete(product.id)"
-                    class="text-red-600 hover:text-red-700"
-                  >
-                    Excluir
-                  </button>
-                </div>
-              </td>
+            <tr v-if="isLoading">
+              <td colspan="5" class="px-6 py-4 text-center">Carregando...</td>
             </tr>
+            <tr v-else-if="products.length === 0">
+              <td colspan="5" class="px-6 py-4 text-center">Nenhum produto encontrado.</td>
+            </tr>
+            <template v-else v-for="product in products" :key="product.id">
+              <tr>
+                <td class="px-6 py-4">
+                  <div class="flex items-center">
+                    <div class="h-10 w-10 flex-shrink-0">
+                      <img :src="product.image" class="h-10 w-10 rounded-full object-cover" />
+                    </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-gray-900">{{ product.name }}</div>
+                      <div class="text-sm text-gray-500">
+                        <template v-if="product.description.length > 100">
+                          {{ expandedProductId === product.id ? product.description : product.description.slice(0, 100) + '...' }}
+                          <button 
+                            @click="toggleProductExpand(product.id)"
+                            class="text-blue-600 hover:text-blue-800 ml-1"
+                          >
+                            {{ expandedProductId === product.id ? 'Ver menos' : 'Ver mais' }}
+                          </button>
+                        </template>
+                        <template v-else>
+                          {{ product.description }}
+                        </template>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                    {{ product.categoria?.name }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ formatPrice(product.price) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {{ formatDate(product.expiration_date) }}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div class="flex space-x-2">
+                    <button
+                      @click="openEditModal(product)"
+                      class="text-blue-600 hover:text-blue-800"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      @click="confirmDelete(product)"
+                      class="text-red-600 hover:text-red-800"
+                    >
+                      Excluir
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </template>
           </tbody>
         </table>
       </div>
 
-      <div v-if="paginatedProducts.length === 0" class="p-4 text-center text-gray-500">
-        Nenhum produto encontrado.
-      </div>
-
-      <div v-if="totalPages > 1" class="px-6 py-4 flex justify-center items-center space-x-2">
+      <div v-if="lastPage > 1" class="px-6 py-4 flex justify-center space-x-2">
         <button
-          @click="goToPage(currentPage - 1)"
-          :disabled="currentPage === 1"
-          class="px-3 py-1 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          v-for="page in lastPage"
+          :key="page"
+          @click="handlePageChange(page)"
+          class="px-3 py-1 rounded-md"
+          :class="currentPage === page ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
         >
-          Anterior
-        </button>
-
-        <template v-for="pageNum in totalPages" :key="pageNum">
-          <button
-            v-if="pageNum === 1"
-            @click="goToPage(pageNum)"
-            class="px-3 py-1 rounded-md"
-            :class="currentPage === pageNum ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-          >
-            {{ pageNum }}
-          </button>
-
-          <span
-            v-if="pageNum === 2 && currentPage > 4"
-            class="px-2"
-          >
-            ...
-          </span>
-
-          <button
-            v-if="pageNum >= currentPage - 1 && pageNum <= currentPage + 1 && pageNum !== 1 && pageNum !== totalPages"
-            @click="goToPage(pageNum)"
-            class="px-3 py-1 rounded-md"
-            :class="currentPage === pageNum ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-          >
-            {{ pageNum }}
-          </button>
-
-          <span
-            v-if="pageNum === totalPages - 1 && currentPage < totalPages - 3"
-            class="px-2"
-          >
-            ...
-          </span>
-
-          <button
-            v-if="pageNum === totalPages"
-            @click="goToPage(pageNum)"
-            class="px-3 py-1 rounded-md"
-            :class="currentPage === pageNum ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'"
-          >
-            {{ pageNum }}
-          </button>
-        </template>
-
-        <button
-          @click="goToPage(currentPage + 1)"
-          :disabled="currentPage === totalPages"
-          class="px-3 py-1 rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Próxima
+          {{ page }}
         </button>
       </div>
     </div>
 
-    <div v-if="isModalOpen" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div class="bg-white rounded-lg max-w-2xl w-full p-6">
-        <div class="flex justify-between items-start mb-4">
-          <h3 class="text-xl font-bold">
-            {{ isEditing ? 'Editar Produto' : selectedProduct?.name }}
-          </h3>
-          <button @click="closeModal" class="text-gray-500 hover:text-gray-700">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        <div v-if="!isEditing && selectedProduct" class="space-y-4">
-          <div class="flex items-start space-x-4">
-            <img :src="selectedProduct.image" class="w-24 h-24 rounded-lg object-cover" />
-            <div>
-              <h4 class="font-medium">{{ selectedProduct.name }}</h4>
-              <p class="text-gray-600 mt-2">{{ selectedProduct.description }}</p>
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <p class="text-sm text-gray-500">Categoria</p>
-              <p class="font-medium">{{ selectedProduct.category }}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-500">Preço</p>
-              <p class="font-medium">{{ formatPrice(selectedProduct.price) }}</p>
-            </div>
-            <div>
-              <p class="text-sm text-gray-500">Data de Validade</p>
-              <p class="font-medium">{{ formatDate(selectedProduct.expiryDate) }}</p>
-            </div>
-          </div>
-        </div>
-
-        <form v-else-if="isEditing" @submit.prevent="handleUpdate" class="space-y-4">
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Nome</label>
-            <input
-              v-model="editForm.name"
-              type="text"
-              required
-              maxlength="50"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Descrição</label>
-            <textarea
-              v-model="editForm.description"
-              required
-              maxlength="200"
-              rows="3"
-              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            ></textarea>
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Categoria</label>
-              <select
-                v-model="editForm.category"
-                required
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option v-for="category in categories" :key="category" :value="category">
-                  {{ category }}
-                </option>
-              </select>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Preço</label>
-              <input
-                v-model="editForm.price"
-                type="number"
-                required
-                min="0"
-                step="0.01"
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700 mb-1">Data de Validade</label>
-              <input
-                v-model="editForm.expiryDate"
-                type="date"
-                required
-                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
-            </div>
-          </div>
-
-          <div class="flex justify-end space-x-2">
-            <button
-              type="button"
-              @click="closeModal"
-              class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Salvar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <!-- Modals -->
+    <ProductModals
+      v-model:showEditModal="showEditModal"
+      v-model:showDeleteModal="showDeleteModal"
+      :editingProduct="editingProduct"
+      :productToDelete="productToDelete"
+      :categories="categories"
+      :isSaving="isSaving"
+      :isDeleting="isDeleting"
+      :originalProduct="originalProduct"
+      @update="handleUpdate"
+      @delete="handleDelete"
+    />
   </div>
 </template>
