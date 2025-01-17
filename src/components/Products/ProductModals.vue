@@ -119,14 +119,14 @@ const hasChanges = computed(() => {
 
       <div class="mt-6 flex justify-end space-x-3">
         <button
-          @click="$emit('update:showEditModal', false)"
+          @click="emit('update:showEditModal', false)"
           class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
           :disabled="isSaving"
         >
           Cancelar
         </button>
         <button
-          @click="$emit('update')"
+          @click="emit('update')"
           class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
           :disabled="!hasChanges || isSaving"
           :class="{ 'opacity-50 cursor-not-allowed': !hasChanges || isSaving }"
@@ -167,14 +167,14 @@ const hasChanges = computed(() => {
       
       <div class="flex justify-end space-x-3">
         <button
-          @click="$emit('update:showDeleteModal', false)"
+          @click="emit('update:showDeleteModal', false)"
           class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
           :disabled="isDeleting"
         >
           Cancelar
         </button>
         <button
-          @click="$emit('delete')"
+          @click="emit('delete')"
           class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
           :disabled="isDeleting"
         >
