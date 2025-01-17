@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useProducts } from '../composables/useProducts'
 
@@ -10,56 +10,76 @@ const productName = ref('')
 const price = ref(0)
 const description = ref('')
 const expiryDate = ref('')
-const category = ref('')
-const imageFile = ref<File | null>(null)
-const customFileName = ref('')
+const categoryId = ref('')
+const imageUrl = ref('')
+const isSubmitting = ref(false)
 
-const categories = [
-  'Eletrônicos',
-  'Roupas',
-  'Alimentos',
-  'Bebidas',
-  'Cosméticos',
-  'Livros',
-  'Outros'
-]
+// Lista dinâmica de categorias
+const categories = ref<{ id: string; name: string }[]>([])
 
-const handleImageChange = (event: Event) => {
-  const input = event.target as HTMLInputElement
-  if (input.files && input.files[0]) {
-    imageFile.value = input.files[0]
-    customFileName.value = imageFile.value.name
+// Função para buscar categorias do endpoint
+const fetchCategories = async () => {
+  try {
+    const response = await fetch('http://localhost:8989/api/categorias')
+    if (!response.ok) {
+      throw new Error('Erro ao buscar categorias')
+    }
+    const data = await response.json()
+    categories.value = data.map((cat: { id: string; name: string }) => ({
+      id: cat.id,
+      name: cat.name
+    }))
+  } catch (error) {
+    console.error('Erro ao buscar categorias:', error)
   }
 }
 
+// Buscar categorias ao montar o componente
+onMounted(() => {
+  fetchCategories()
+})
+
+// Função para obter a data atual no formato YYYY-MM-DD
 const getCurrentDate = () => {
   const today = new Date()
-  return today.toISOString().split('T')[0]
+  const year = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day = String(today.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
 }
 
+// Função para lidar com o envio do formulário
 const handleSubmit = async (event: Event) => {
   event.preventDefault()
-  
-  let imageUrl = ''
-  if (imageFile.value) {
-    const reader = new FileReader()
-    imageUrl = await new Promise((resolve) => {
-      reader.onload = (e) => resolve(e.target?.result as string)
-      reader.readAsDataURL(imageFile.value!)
-    })
-  }
+  isSubmitting.value = true
 
-  addProduct({
+  // Ajustar a data de validade adicionando um dia
+  const adjustedExpiryDate = new Date(expiryDate.value)
+  adjustedExpiryDate.setDate(adjustedExpiryDate.getDate() + 1)
+  const formattedExpiryDate = adjustedExpiryDate.toISOString().split('T')[0]
+
+  const productData = {
     name: productName.value,
     price: price.value,
     description: description.value,
-    expiryDate: expiryDate.value,
-    category: category.value,
-    image: imageUrl
-  })
+    expiration_date: formattedExpiryDate,
+    categoria_id: categoryId.value,
+    image: imageUrl.value
+  }
 
-  router.push('/dashboard/products')
+  console.log('Dados do produto a serem enviados:', productData);
+
+  try {
+    await addProduct(productData);
+    router.push('/dashboard/products');
+  } catch (error) {
+    alert('Erro ao cadastrar produto. Verifique os dados e tente novamente.');
+    console.error('Erro ao adicionar produto:', error);
+  } finally {
+    isSubmitting.value = false
+  }
 }
+
 </script>
 
 <template>
@@ -139,48 +159,59 @@ const handleSubmit = async (event: Event) => {
           </label>
           <select
             id="category"
-            v-model="category"
+            v-model="categoryId"
             required
             class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           >
             <option value="" disabled>Selecione uma categoria</option>
-            <option v-for="cat in categories" :key="cat" :value="cat">
-              {{ cat }}
+            <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+              {{ cat.name }}
             </option>
           </select>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Imagem do Produto
+          <label for="imageUrl" class="block text-sm font-medium text-gray-700 mb-1">
+            URL da Imagem
           </label>
-          <div class="space-y-2">
-            <input
-              type="file"
-              accept="image/*"
-              @change="handleImageChange"
-              class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-              required
-            />
-            <div v-if="imageFile" class="flex items-center space-x-2">
-              <input
-                v-model="customFileName"
-                type="text"
-                class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Nome personalizado do arquivo"
-              />
-              <span class="text-sm text-gray-500">
-                {{ imageFile.type.split('/')[1] }}
-              </span>
-            </div>
-          </div>
+          <input
+            id="imageUrl"
+            v-model="imageUrl"
+            type="url"
+            required
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="https://exemplo.com/imagem.jpg"
+          />
         </div>
 
         <button
           type="submit"
-          class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+          class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center space-x-2"
+          :disabled="isSubmitting"
+          :class="{ 'opacity-50 cursor-not-allowed': isSubmitting }"
         >
-          Cadastrar Produto
+          <svg
+            v-if="isSubmitting"
+            class="animate-spin h-5 w-5"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          <span>{{ isSubmitting ? 'Cadastrando...' : 'Cadastrar Produto' }}</span>
         </button>
       </form>
     </div>
