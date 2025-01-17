@@ -1,37 +1,78 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
-const router = useRouter()
-const isLogin = ref(false)
-const email = ref('')
-const password = ref('')
-const passwordConfirmation = ref('')
-const name = ref('')
-const error = ref('')
+const router = useRouter();
+const isLogin = ref(false);
+const email = ref('');
+const password = ref('');
+const passwordConfirmation = ref('');
+const name = ref('');
+const error = ref('');
+const loading = ref(false);
 
 const toggleForm = () => {
-  isLogin.value = !isLogin.value
-  email.value = ''
-  password.value = ''
-  passwordConfirmation.value = ''
-  name.value = ''
-  error.value = ''
-}
+  isLogin.value = !isLogin.value;
+  email.value = '';
+  password.value = '';
+  passwordConfirmation.value = '';
+  name.value = '';
+  error.value = '';
+};
 
 const handleSubmit = async () => {
+  loading.value = true;
+  error.value = '';
   try {
-    error.value = ''
-    
+    if (!isLogin.value && password.value.length < 8) {
+      throw new Error('A senha deve ter pelo menos 8 caracteres.');
+    }
     if (!isLogin.value && password.value !== passwordConfirmation.value) {
-      throw new Error('As senhas não coincidem')
+      throw new Error('As senhas não coincidem.');
     }
 
-    router.push('/dashboard')
-  } catch (err: any) {
-    error.value = err.message || 'Ocorreu um erro. Tente novamente.'
+    const url = isLogin.value ? 'http://localhost:8989/api/auth/login' : 'http://localhost:8989/api/auth/register';
+    const payload = isLogin.value
+      ? { email: email.value, password: password.value }
+      : { name: name.value, email: email.value, password: password.value, password_confirmation: passwordConfirmation.value };
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      credentials: 'include', 
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const errorMessage = data.message || 'Ocorreu um erro inesperado.';
+      throw new Error(errorMessage.replace('The password must be at least 8 characters.', 'A senha deve ter pelo menos 8 caracteres.'));
+    }
+
+    if (!isLogin.value) {
+      error.value = 'Conta criada com sucesso! Você pode fazer login agora.';
+      isLogin.value = true;
+      email.value = '';
+      password.value = '';
+      passwordConfirmation.value = '';
+      name.value = '';
+      return;
+    }
+
+    localStorage.setItem('authToken', data.token);
+    router.push('/dashboard');
+  } catch (err) {
+    error.value = (err as Error).message || 'Erro ao conectar com o servidor.';
+    console.error(err);
+  } finally {
+    loading.value = false;
   }
-}
+};
+
 </script>
 
 <template>
@@ -41,7 +82,7 @@ const handleSubmit = async () => {
         {{ isLogin ? 'Login' : 'Criar Conta' }}
       </h2>
 
-      <div v-if="error" class="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 rounded-lg">
+      <div v-if="error" :class="{'mb-6 p-4 border rounded-lg': true, 'bg-red-50 border-red-200 text-red-600': error !== 'Conta criada com sucesso! Você pode fazer login agora.', 'bg-green-50 border-green-200 text-green-600': error === 'Conta criada com sucesso! Você pode fazer login agora.'}">
         {{ error }}
       </div>
 
@@ -104,9 +145,13 @@ const handleSubmit = async () => {
 
         <button
           type="submit"
-          class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
+          :class="[ 
+            'w-full py-2 px-4 rounded-lg transition-colors flex items-center justify-center',
+            loading ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white'
+          ]"
+          :disabled="loading"
         >
-          {{ isLogin ? 'Entrar' : 'Criar conta' }}
+          {{ loading ? 'Aguarde...' : isLogin ? 'Entrar' : 'Criar conta' }}
         </button>
 
         <p class="text-center text-sm text-gray-600">
