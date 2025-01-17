@@ -14,10 +14,8 @@ const categoryId = ref('')
 const imageUrl = ref('')
 const isSubmitting = ref(false)
 
-// Lista dinâmica de categorias
 const categories = ref<{ id: string; name: string }[]>([])
 
-// Função para buscar categorias do endpoint
 const fetchCategories = async () => {
   try {
     const response = await fetch('http://localhost:8989/api/categorias')
@@ -34,12 +32,10 @@ const fetchCategories = async () => {
   }
 }
 
-// Buscar categorias ao montar o componente
 onMounted(() => {
   fetchCategories()
 })
 
-// Função para obter a data atual no formato YYYY-MM-DD
 const getCurrentDate = () => {
   const today = new Date()
   const year = today.getFullYear()
@@ -48,12 +44,10 @@ const getCurrentDate = () => {
   return `${year}-${month}-${day}`
 }
 
-// Função para lidar com o envio do formulário
 const handleSubmit = async (event: Event) => {
   event.preventDefault()
   isSubmitting.value = true
 
-  // Ajustar a data de validade adicionando um dia
   const adjustedExpiryDate = new Date(expiryDate.value)
   adjustedExpiryDate.setDate(adjustedExpiryDate.getDate() + 1)
   const formattedExpiryDate = adjustedExpiryDate.toISOString().split('T')[0]

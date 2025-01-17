@@ -1,12 +1,11 @@
-// useProducts.ts
 import { ref } from 'vue';
 
 export function useProducts() {
-  const baseUrl = 'http://localhost:8989/api'; // Ajuste para a URL base do seu backend
+  const baseUrl = 'http://localhost:8989/api'; 
   const products = ref<Record<string, any>[]>([]);
   const error = ref<string | null>(null);
   const currentPage = ref(1);
-  const itemsPerPage = 10; // Número de produtos por página
+  const itemsPerPage = 10; 
   const searchTerm = ref('');
   const selectedCategory = ref('');
   const maxPrice = ref<number | null>(null);
@@ -26,7 +25,7 @@ export function useProducts() {
       }
 
       const data = await response.json();
-      products.value.push(data); // Adiciona o novo produto à lista
+      products.value.push(data); 
       return data;
     } catch (err) {
       if (err instanceof Error) {
@@ -48,7 +47,7 @@ export function useProducts() {
       }
 
       const data = await response.json();
-      products.value = data; // Armazena os produtos obtidos
+      products.value = data;
     } catch (err) {
       if (err instanceof Error) {
         error.value = err.message;
@@ -76,7 +75,7 @@ export function useProducts() {
       const updatedProduct = await response.json();
       const index = products.value.findIndex(p => p.id === id);
       if (index !== -1) {
-        products.value[index] = updatedProduct; // Atualiza o produto na lista
+        products.value[index] = updatedProduct; 
       }
       return updatedProduct;
     } catch (err) {
@@ -100,7 +99,7 @@ export function useProducts() {
         throw new Error('Erro ao excluir produto');
       }
 
-      products.value = products.value.filter(p => p.id !== id); // Remove o produto da lista
+      products.value = products.value.filter(p => p.id !== id); 
     } catch (err) {
       if (err instanceof Error) {
         error.value = err.message;

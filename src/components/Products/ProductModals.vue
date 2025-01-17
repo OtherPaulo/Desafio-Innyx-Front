@@ -50,7 +50,6 @@ const hasChanges = computed(() => {
 </script>
 
 <template>
-  <!-- Edit Modal -->
   <div v-if="showEditModal && editingProduct" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-lg p-6 max-w-lg w-full">
       <h2 class="text-xl font-bold mb-4">Editar Produto</h2>
@@ -159,7 +158,6 @@ const hasChanges = computed(() => {
     </div>
   </div>
 
-  <!-- Delete Confirmation Modal -->
   <div v-if="showDeleteModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
     <div class="bg-white rounded-lg p-6 max-w-md w-full">
       <h2 class="text-xl font-bold mb-4">Confirmar Exclusão</h2>

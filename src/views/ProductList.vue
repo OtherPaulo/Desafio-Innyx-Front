@@ -344,7 +344,6 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- Modals -->
     <ProductModals
       v-model:showEditModal="showEditModal"
       v-model:showDeleteModal="showDeleteModal"
