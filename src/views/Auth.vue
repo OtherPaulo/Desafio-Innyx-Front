@@ -67,7 +67,6 @@ const handleSubmit = async () => {
     router.push('/dashboard');
   } catch (err) {
     error.value = (err as Error).message || 'Erro ao conectar com o servidor.';
-    console.error(err);
   } finally {
     loading.value = false;
   }

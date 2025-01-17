@@ -19,11 +19,6 @@ const categories = [
 ]
 
 const handleSearch = () => {
-  console.log('Searching for:', {
-    searchTerm: searchTerm.value,
-    category: selectedCategory.value,
-    maxPrice: maxPrice.value
-  })
 }
 
 onMounted(() => {

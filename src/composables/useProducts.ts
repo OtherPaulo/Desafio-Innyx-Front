@@ -33,7 +33,6 @@ export function useProducts() {
       } else {
         error.value = String(err);
       }
-      console.error('Erro ao adicionar produto:', err);
       throw err;
     }
   };
@@ -54,7 +53,6 @@ export function useProducts() {
       } else {
         error.value = String(err);
       }
-      console.error('Erro ao buscar produtos:', err);
     }
   };
 
@@ -84,7 +82,6 @@ export function useProducts() {
       } else {
         error.value = String(err);
       }
-      console.error('Erro ao atualizar produto:', err);
       throw err;
     }
   };
@@ -106,7 +103,6 @@ export function useProducts() {
       } else {
         error.value = String(err);
       }
-      console.error('Erro ao excluir produto:', err);
       throw err;
     }
   };

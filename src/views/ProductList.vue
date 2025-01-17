@@ -78,7 +78,6 @@ const loadData = async () => {
     products.value = paginatedProducts.value
     lastPage.value = totalPages.value
   } catch (error) {
-    console.error('Error loading data:', error)
   } finally {
     isLoading.value = false
   }
@@ -110,7 +109,6 @@ const handleDelete = async () => {
     productToDelete.value = null
     await loadData()
   } catch (error) {
-    console.error('Error deleting product:', error)
   } finally {
     isDeleting.value = false
   }
@@ -151,7 +149,6 @@ const handleUpdate = async () => {
     originalProduct.value = null
     await loadData()
   } catch (error) {
-    console.error('Error updating product:', error)
   } finally {
     isSaving.value = false
   }

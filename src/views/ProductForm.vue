@@ -28,7 +28,6 @@ const fetchCategories = async () => {
       name: cat.name
     }))
   } catch (error) {
-    console.error('Erro ao buscar categorias:', error)
   }
 }
 
@@ -61,14 +60,12 @@ const handleSubmit = async (event: Event) => {
     image: imageUrl.value
   }
 
-  console.log('Dados do produto a serem enviados:', productData);
 
   try {
     await addProduct(productData);
     router.push('/dashboard/products');
   } catch (error) {
     alert('Erro ao cadastrar produto. Verifique os dados e tente novamente.');
-    console.error('Erro ao adicionar produto:', error);
   } finally {
     isSubmitting.value = false
   }
